@@ -1,0 +1,968 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Eduqas‑Style Compound Interest & Exponential Change Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#eef3fb;
+      --card:#ffffff;
+      --accent:#5b73f1;
+      --accent-2:#3846a5;
+      --danger:#c62828;
+      --success:#16a34a;
+      --text:#111827;
+      --muted:#6b7280;
+      --ink:#1f2937;
+      --chip:#eef2ff;
+      --shadow:0 12px 30px rgba(31,41,55,.18);
+      --proc:#4338ca;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 85% -20%, #dfe6ff 0, transparent 60%),
+        radial-gradient(1200px 600px at -10% 110%, #ffdfe6 0, transparent 60%),
+        var(--bg);
+      min-height:100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:2rem 1rem;
+    }
+    .card{
+      width:min(900px,98%);
+      background:var(--card);
+      border-radius:1rem;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .header{
+      padding:1.2rem 1.6rem;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#fff;
+      display:flex;
+      align-items:center;
+      gap:1rem;
+      flex-wrap:wrap;
+    }
+    .header h1{margin:0;font-size:1.25rem;letter-spacing:.3px}
+    .badge{
+      display:inline-flex;align-items:center;gap:.45rem;
+      padding:.25rem .6rem;border-radius:.6rem;background:rgba(255,255,255,.16);
+      font-weight:700;font-size:.85rem
+    }
+    .body{padding:1.4rem 1.6rem}
+    #question{font-weight:700;line-height:1.55;margin:.4rem 0 1rem;font-size:1.08rem}
+    .chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:.2rem 0 .9rem}
+    .chip{background:var(--chip);color:#3730a3;border:1px solid #c7d2fe;border-radius:999px;padding:.15rem .6rem;font-weight:700;font-size:.8rem}
+    .note{margin:.2rem 0 .9rem;color:#374151;font-size:.92rem;background:#f8fafc;border:1px solid #e5e7eb;border-radius:.6rem;padding:.6rem .7rem}
+    label[for="ansInput"]{font-weight:800}
+    input[type="number"], input[type="text"]{
+      width:100%;max-width:280px;margin-top:.35rem;
+      font-size:1.08rem;padding:.6rem .75rem;border:2px solid #c6cfd9;border-radius:.55rem;transition:border-color .15s ease, box-shadow .2s ease, background .2s ease
+    }
+    input[type="number"]:focus, input[type="text"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,115,241,.18)}
+    .controls{margin-top:1rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    button{
+      border:none;border-radius:.55rem;cursor:pointer;font-weight:800;
+      padding:.6rem 1.1rem;font-size:.98rem;letter-spacing:.2px;
+      transition:transform .06s ease, background .15s ease, box-shadow .2s ease;
+    }
+    #checkBtn{background:var(--accent);color:#fff;box-shadow:0 6px 14px rgba(91,115,241,.35)}
+    #checkBtn:hover{background:#4e63d6}
+    #checkBtn:active{transform:translateY(1px)}
+    #nextBtn{background:#0f172a;color:#fff;display:none}
+    #nextBtn:hover{background:#0b1220}
+    #hintBtn{background:#e5e7eb}
+    #hintBtn:hover{background:#d9dbe0}
+    #feedback{min-height:1.6rem;margin-top:.65rem;font-weight:800}
+    .no{color:var(--danger)} /* wrong → red */
+    .yes{color:var(--success)} /* right → green */
+
+    /* Shake animation for wrong answers */
+    .shake{animation:shake .28s linear}
+    @keyframes shake{
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)}
+      60%{transform:translateX(-6px)}
+      80%{transform:translateX(6px)}
+    }
+
+    /* Confetti & Toast */
+    #confetti{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
+    .confetti-piece{
+      position:fixed;top:-12px;width:10px;height:14px;opacity:.9;
+      will-change:transform,opacity;
+      animation:fall linear forwards;
+    }
+    @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+    @media (prefers-reduced-motion: reduce){.shake{animation:none}.confetti-piece{display:none}}
+
+    #toast{
+      position:fixed;top:12px;left:50%;transform:translate(-50%,-10px);
+      background:#111827;color:#fff;border-radius:.6rem;
+      padding:.5rem .8rem;box-shadow:0 10px 25px rgba(0,0,0,.25);
+      opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;
+      font-weight:800;letter-spacing:.2px
+    }
+    #toast.show{opacity:1;transform:translate(-50%,0)}
+
+    /* Start overlay */
+    #overlay{
+      position:fixed;inset:0;background:rgba(16,24,40,.75);
+      display:flex;align-items:center;justify-content:center;z-index:50
+    }
+    .panel{
+      width:min(520px,92%);background:#fff;border-radius:1rem;padding:1.2rem 1.1rem 1.25rem;
+      box-shadow:0 14px 34px rgba(0,0,0,.35);animation:pop .2s ease-out
+    }
+    @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .panel h2{margin:.2rem 0 1rem;font-size:1.35rem}
+    .row{display:flex;gap:.55rem;flex-wrap:wrap}
+    .group{margin:.55rem 0}
+    .option{display:flex;align-items:center;gap:.45rem;margin:.25rem 0}
+    .radioWrap{background:#f6f7fb;border:1px solid #dfe4f2;border-radius:.6rem;padding:.55rem .75rem}
+    .startBtn{width:100%;margin-top:.7rem;background:var(--accent);color:#fff}
+    .muted{color:var(--muted);font-size:.9rem}
+
+    /* Progress (target mode) */
+    .progress{
+      height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:.4rem;display:none
+    }
+    .progress > span{display:block;height:100%;background:linear-gradient(90deg,#34d399,#10b981);width:0%}
+
+    /* Drawer */
+    #drawerShade{
+      position:fixed;inset:0;background:rgba(2,6,23,.32);backdrop-filter:blur(2px);
+      opacity:0;visibility:hidden;transition:.2s;z-index:49;
+    }
+    #drawerShade.open{opacity:1;visibility:visible}
+    #hintDrawer{
+      position:fixed;top:0;right:-520px;height:100vh;width:min(520px,95%);
+      background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.25);z-index:50;
+      transition:right .22s ease-out;display:flex;flex-direction:column;
+    }
+    #hintDrawer.open{right:0}
+    .drawerHead{
+      display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-bottom:1px solid #e5e7eb
+    }
+    .drawerBody{padding:1rem 1.2rem;overflow:auto}
+    .tabs{display:flex;gap:.35rem;margin-bottom:.7rem}
+    .tabBtn{
+      background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;font-weight:800;
+      padding:.4rem .7rem;border-radius:.6rem;cursor:pointer
+    }
+    .tabBtn.active{background:#4338ca;color:#fff;border-color:#4338ca}
+    .hintCard{
+      border:1px solid #e5e7eb;border-radius:.75rem;padding:.8rem 1rem;margin:.6rem 0;background:#fbfdff
+    }
+    .hintCard h4{margin:.1rem 0 .4rem;font-size:1rem}
+    code{background:#f1f5f9;padding:.1rem .35rem;border-radius:.35rem;white-space:nowrap}
+
+    /* Number machine */
+    .machine{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:.6rem 0 .3rem}
+    .machine .io{
+      padding:.45rem .7rem;border:1.8px solid #c6cfd9;border-radius:.6rem;background:#fff;
+      font-weight:800;min-width:120px;text-align:center
+    }
+    .machine .proc{
+      padding:.5rem .9rem;border-radius:.6rem;background:var(--proc);color:#fff;font-weight:900;
+      box-shadow:0 8px 18px rgba(67,56,202,.25);min-width:110px;text-align:center
+    }
+    .machine .arrow{font-weight:900;opacity:.6;font-size:1.2rem}
+  </style>
+</head>
+<body>
+  <!-- ===== Start Menu ===== -->
+  <div id="overlay" role="dialog" aria-modal="true">
+    <div class="panel">
+      <h2>Start Quiz — Compound Interest & Exponential Change</h2>
+      <div class="group">
+        <label for="nameInput" style="font-weight:700">Name</label>
+        <input id="nameInput" type="text" placeholder="Enter your name" style="width:100%;padding:.6rem .7rem;border:1.8px solid #c6cfd9;border-radius:.5rem;margin-top:.35rem">
+      </div>
+
+      <div class="group">
+        <div style="font-weight:700;margin-bottom:.2rem">Mode</div>
+        <div class="row">
+          <label class="radioWrap option"><input type="radio" name="mode" value="timer" checked> Timed</label>
+          <label class="radioWrap option"><input type="radio" name="mode" value="target"> Target score</label>
+        </div>
+      </div>
+
+      <div id="timerGroup" class="group">
+        <div style="font-weight:700;margin-bottom:.2rem">Time limit</div>
+        <label class="option"><input type="radio" name="timer" value="600" checked> 10 minutes</label>
+        <label class="option"><input type="radio" name="timer" value="1200"> 20 minutes</label>
+        <label class="option"><input type="radio" name="timer" value="none"> No limit</label>
+      </div>
+
+      <div id="scoreGroup" class="group" style="display:none">
+        <label for="scoreInput" style="font-weight:700">Target score</label>
+        <input id="scoreInput" type="number" min="1" placeholder="e.g. 20" style="width:100%;padding:.55rem .7rem;border:1.8px solid #c6cfd9;border-radius:.5rem;margin-top:.35rem">
+        <div class="muted">You’ll earn <b>1 point</b> per correct answer.</div>
+      </div>
+
+      <button id="startBtn" class="startBtn">Start</button>
+      <div class="muted" style="margin-top:.6rem">
+        <b>Rounding rules:</b> money/measure answers to <u>2 d.p.</u>; <u>years</u> to the <u>nearest whole year</u>; <u>counts</u> to the <u>nearest whole number</u>.
+        <br><b>Use the multiplier</b> method.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Confetti & Toast ===== -->
+  <div id="confetti" aria-hidden="true"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ===== Main Card ===== -->
+  <div class="card" id="card">
+    <div class="header">
+      <h1>Compound Interest & Exponential Change — Practice</h1>
+      <span class="badge">👤 <span id="playerName">—</span></span>
+      <span class="badge">⏱ <span id="timer">--:--</span></span>
+      <span class="badge">🏆 <span id="goal">—</span></span>
+      <span class="badge">✅ <span id="score">0</span></span>
+      <span class="badge">🔥 <span id="streak">0</span></span>
+    </div>
+
+    <div class="body">
+      <div class="chips">
+        <span class="chip">Investments: up to 9 years</span>
+        <span class="chip">Includes growth & decay</span>
+        <span class="chip">Includes depreciation</span>
+      </div>
+
+      <div id="question"></div>
+
+      <div class="note">
+        Type the final <b>amount</b>, <b>mass</b>, <b>value</b>, <b>count</b>, or <b>number of years</b> as required.
+        <br>Money/measure answers: <b>2 d.p.</b> • Year questions: <b>nearest whole year</b> • Count questions: <b>nearest whole number</b>.
+      </div>
+
+      <label id="ansLabel" for="ansInput">Your answer</label>
+      <input id="ansInput" type="number" step="0.01" inputmode="decimal" placeholder="e.g. 123.45">
+
+      <div id="feedback" aria-live="polite"></div>
+
+      <div class="controls">
+        <button id="checkBtn">Check</button>
+        <button id="nextBtn">Next question</button>
+        <button id="hintBtn" title="Open hints & worked example">Hint & Worked example</button>
+      </div>
+
+      <div class="progress" id="progress"><span id="bar"></span></div>
+    </div>
+  </div>
+
+  <!-- ===== Hints Drawer ===== -->
+  <div id="drawerShade" aria-hidden="true"></div>
+  <aside id="hintDrawer" aria-label="Hints and Examples">
+    <div class="drawerHead">
+      <strong>Hint & Worked Example (Number Machine)</strong>
+      <button id="closeDrawer" class="tabBtn" style="background:#0f172a;color:#fff;border-color:#0f172a">Close ✕</button>
+    </div>
+    <div class="drawerBody">
+      <div class="tabs">
+        <button class="tabBtn active" data-tab="thisQ">This question — method only</button>
+        <button class="tabBtn" data-tab="example">Worked example (same type)</button>
+      </div>
+
+      <!-- This question (process only; no answers revealed) -->
+      <div id="tab-thisQ">
+        <div class="hintCard">
+          <h4 id="thisQTitle">How to approach it</h4>
+          <div id="thisQBody"></div>
+        </div>
+      </div>
+
+      <!-- Worked example — generated for the current type only -->
+      <div id="tab-example" style="display:none">
+        <div class="hintCard">
+          <h4 id="exTitle">Worked example</h4>
+          <div id="exBody"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    /* ---------------- helpers ---------------- */
+    const pad = n => String(n).padStart(2,'0');
+    const fmt = s => s===null ? '∞' : `${Math.floor(s/60)}:${pad(s%60)}`;
+    const rnd = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+    const choice = arr => arr[rnd(0,arr.length-1)];
+    const clamp = (v,min,max)=> Math.min(max,Math.max(min,v));
+
+    const to2 = x => Math.round(x*100)/100;
+    const f2 = x => to2(x).toFixed(2);
+    const f0 = x => String(Math.round(x));
+
+    const approxEq = (a,b,tol=0.01)=> Math.abs(a-b) <= tol;
+    const stepRnd = (min, max, step) => {
+      const n = Math.round((Math.random()*(max-min)+min)/step)*step;
+      return Math.max(min, Math.min(max, n));
+    };
+
+    /* ---------------- visuals: confetti + toast ---------------- */
+    function confettiBurst(count=140){
+      const colors = ['#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#14b8a6','#e11d48'];
+      const root = document.getElementById('confetti');
+      const pieces = [];
+      for(let i=0;i<count;i++){
+        const p = document.createElement('i');
+        p.className='confetti-piece';
+        p.style.width = rnd(8,12)+'px';
+        p.style.height = rnd(10,16)+'px';
+        p.style.left = rnd(0,100)+'%';
+        p.style.background = colors[rnd(0,colors.length-1)];
+        p.style.transform = `translateY(-12px) rotate(${rnd(0,360)}deg)`;
+        p.style.animationDuration = (Math.random()*0.8+0.9)+'s';
+        p.style.animationDelay = (Math.random()*0.15)+'s';
+        p.style.borderRadius = Math.random()<0.4 ? '50% 50% 30% 70% / 50% 50% 70% 30%' : '2px';
+        root.appendChild(p);
+        pieces.push(p);
+      }
+      setTimeout(()=> pieces.forEach(el=> el.remove()), 1500);
+    }
+    const toastEl = document.getElementById('toast'); let toastTimer=null;
+    function flashToast(msg){
+      clearTimeout(toastTimer);
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 1400);
+    }
+
+    /* ---------------- state ---------------- */
+    let score=0, streak=0, player='—', mode='timer', timeLeft=null, target=null, timerID=null;
+
+    // cur holds everything about the current question
+    let cur = {
+      type:null,
+      rate:null,
+      mult:null,
+      n:null,
+      start:null,
+      end:null,
+      ans:null,
+      ansType:'amount', // 'money' | 'amount' | 'count' | 'years'
+      unit:'',
+      qStart: performance.now(),
+      text:'',
+      currency:'£'
+    };
+
+    /* ---------------- DOM ---------------- */
+    const qEl = document.getElementById('question');
+    const ansEl = document.getElementById('ansInput');
+    const ansLabelEl = document.getElementById('ansLabel');
+    const fbEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const playerEl = document.getElementById('playerName');
+    const timerEl = document.getElementById('timer');
+    const goalEl = document.getElementById('goal');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn  = document.getElementById('nextBtn');
+    const hintBtn  = document.getElementById('hintBtn');
+    const cardEl   = document.getElementById('card');
+    const progress = document.getElementById('progress');
+    const barEl    = document.getElementById('bar');
+
+    // Drawer DOM
+    const drawer = document.getElementById('hintDrawer');
+    const shade  = document.getElementById('drawerShade');
+    const closeDrawerBtn = document.getElementById('closeDrawer');
+    const tabBtns = document.querySelectorAll('.tabBtn[data-tab]');
+    const tabThisQ = document.getElementById('tab-thisQ');
+    const tabExample = document.getElementById('tab-example');
+    const thisQBody = document.getElementById('thisQBody');
+    const thisQTitle = document.getElementById('thisQTitle');
+    const exTitle = document.getElementById('exTitle');
+    const exBody = document.getElementById('exBody');
+
+    /* ---------------- content pools ---------------- */
+    const investRates = [1.5,2,2.5,3,3.5,4,4.5,5,6,7,8,9,10,12];
+    const decayRates  = [5,7.5,10,12.5,15,18,20,25,30];
+    const radRates    = [2,3,4,5,6,7,8,10,12,15];
+    const bactRates   = [10,12.5,15,20,25,30,35,40,50];
+    const medRates    = [8,10,12.5,15,20,25,30,35];
+
+    const timeDecayContexts = [
+      {label:'a radioactive sample', unit:'g', ratePool:'rad', startMin:80, startMax:800, step:10},
+      {label:'the value of a machine', unit:'money', ratePool:'depr', startMin:800, startMax:20000, step:100},
+      {label:'the amount of medicine in the bloodstream', unit:'mg', ratePool:'med', startMin:40, startMax:400, step:5}
+    ];
+
+    const investContexts = [
+      'a savings account',
+      'a fixed-rate bond',
+      'a junior ISA',
+      'an investment account'
+    ];
+
+    const depreciatingAssets = [
+      'a car',
+      'a laptop',
+      'a smartphone',
+      'a bike',
+      'a camera'
+    ];
+
+    const growthScenarios = [
+      {label:'bacteria culture', unit:'bacteria', kind:'count'},
+      {label:'online followers', unit:'followers', kind:'count'},
+      {label:'website visits', unit:'visits', kind:'count'}
+    ];
+
+    /* ---------------- number machine render ---------------- */
+    function machineHTML({direction='forward', input='Input', proc='× m', output='Output'}={}){
+      const arrow = direction==='forward' ? '→' : '←';
+      return `
+        <div class="machine">
+          <div class="io">${direction==='forward'?'Start':'End'}<br><span style="font-weight:900">${input}</span></div>
+          <div class="arrow">${arrow}</div>
+          <div class="proc">${proc}</div>
+          <div class="arrow">${arrow}</div>
+          <div class="io">${direction==='forward'?'End':'Start'}<br><span style="font-weight:900">${output}</span></div>
+        </div>
+      `;
+    }
+
+    /* ---------------- small helpers for formatting ---------------- */
+    function fmtAnswer(){
+      const C = cur.currency;
+      if(cur.ansType==='money') return `${C}${f2(cur.ans)}`;
+      if(cur.ansType==='years') return `${f0(cur.ans)} years`;
+      if(cur.ansType==='count') return `${f0(cur.ans)} ${cur.unit}`;
+      // amount (non-money) defaults to 2 d.p.
+      if(cur.unit) return `${f2(cur.ans)} ${cur.unit}`;
+      return f2(cur.ans);
+    }
+
+    function setAnswerUI(){
+      if(cur.ansType==='years'){
+        ansLabelEl.textContent = 'Your answer (nearest whole year)';
+        ansEl.step = '1';
+        ansEl.inputMode = 'numeric';
+        ansEl.placeholder = 'e.g. 6';
+      } else if(cur.ansType==='count'){
+        ansLabelEl.textContent = 'Your answer (nearest whole number)';
+        ansEl.step = '1';
+        ansEl.inputMode = 'numeric';
+        ansEl.placeholder = 'e.g. 2500';
+      } else {
+        ansLabelEl.textContent = 'Your answer (2 d.p.)';
+        ansEl.step = '0.01';
+        ansEl.inputMode = 'decimal';
+        ansEl.placeholder = 'e.g. 123.45';
+      }
+    }
+
+    /* ---------------- hint content (process only) ---------------- */
+    function updateThisQHint(){
+      const r = cur.rate;
+      const m = cur.mult;
+      const n = cur.n;
+      let html='', title='';
+
+      const commonGrowth = `
+        <ul>
+          <li>Convert the rate to a multiplier: <code>m = 1 + r/100</code>.</li>
+          <li>Use compound change: <code>Final = Start × m^n</code>.</li>
+          <li>Round money/measure to <b>2 d.p.</b> (counts to nearest whole number).</li>
+        </ul>
+      `;
+      const commonDecay = `
+        <ul>
+          <li>Convert the rate to a multiplier: <code>m = 1 − r/100</code>.</li>
+          <li>Use compound change: <code>Final = Start × m^n</code>.</li>
+          <li>Round money/measure to <b>2 d.p.</b></li>
+        </ul>
+      `;
+
+      if(cur.type==='invest_final'){
+        title='Compound interest (find final amount)';
+        html = `
+          ${machineHTML({direction:'forward', input:'Start', proc:`× (${(m).toFixed(4)}) ^ ${n}`, output:'Final'})}
+          ${commonGrowth}
+          <div class="muted">Here, r = ${r}% per year, so m = 1 + ${r}/100 = ${(m).toFixed(4)}.</div>
+        `;
+      }
+      else if(cur.type==='invest_reverse'){
+        title='Compound interest (find starting amount)';
+        html = `
+          ${machineHTML({direction:'backward', input:'Start', proc:`÷ (${(m).toFixed(4)}) ^ ${n}`, output:'Final'})}
+          <ul>
+            <li>Work out the multiplier: <code>m = 1 + r/100</code>.</li>
+            <li>Go backwards: <code>Start = Final ÷ m^n</code>.</li>
+            <li>Round to <b>2 d.p.</b></li>
+          </ul>
+          <div class="muted">Here, r = ${r}% per year, so m = ${(m).toFixed(4)} and n = ${n} years.</div>
+        `;
+      }
+      else if(cur.type==='time_growth'){
+        title='Solve for time (growth)';
+        html = `
+          ${machineHTML({direction:'forward', input:'Start', proc:`× ${(m).toFixed(4)} each year`, output:'Final'})}
+          <ul>
+            <li>Multiplier: <code>m = 1 + r/100</code>.</li>
+            <li>Use logs to solve: <code>n = log(Final/Start) ÷ log(m)</code>.</li>
+            <li>Round <b>n</b> to the <b>nearest whole year</b>.</li>
+          </ul>
+        `;
+      }
+      else if(cur.type==='depr_value'){
+        title='Depreciation (compound decrease)';
+        html = `
+          ${machineHTML({direction:'forward', input:'Start value', proc:`× (${(m).toFixed(4)}) ^ ${n}`, output:'Value after n years'})}
+          ${commonDecay}
+          <div class="muted">Here, r = ${r}% decrease per year, so m = 1 − ${r}/100 = ${(m).toFixed(4)}.</div>
+        `;
+      }
+      else if(cur.type==='radiation_mass'){
+        title='Radiation decay (compound decrease)';
+        html = `
+          ${machineHTML({direction:'forward', input:'Start mass', proc:`× (${(m).toFixed(4)}) ^ ${n}`, output:'Mass after n years'})}
+          ${commonDecay}
+          <div class="muted">Here, r = ${r}% lost per year, so m = ${(m).toFixed(4)}.</div>
+        `;
+      }
+      else if(cur.type==='time_decay'){
+        title='Solve for time (decay)';
+        html = `
+          ${machineHTML({direction:'forward', input:'Start', proc:`× ${(m).toFixed(4)} each year`, output:'Final'})}
+          <ul>
+            <li>Multiplier: <code>m = 1 − r/100</code>.</li>
+            <li>Use logs to solve: <code>n = log(Final/Start) ÷ log(m)</code>.</li>
+            <li>Round <b>n</b> to the <b>nearest whole year</b>.</li>
+          </ul>
+        `;
+      }
+      else if(cur.type==='bacteria'){
+        title='Exponential growth (repeated percentage increase)';
+        html = `
+          ${machineHTML({direction:'forward', input:'Start count', proc:`× (${(m).toFixed(4)}) ^ ${n}`, output:'Final count'})}
+          ${commonGrowth}
+          <div class="muted">Here, r = ${r}% per hour, so m = ${(m).toFixed(4)} and n = ${n} hours.</div>
+        `;
+      }
+      else{
+        title='Method';
+        html = `
+          <ul>
+            <li>Find the multiplier (increase: <code>1 + r/100</code>, decrease: <code>1 − r/100</code>).</li>
+            <li>Apply the multiplier repeatedly: <code>Final = Start × m^n</code>.</li>
+          </ul>
+        `;
+      }
+
+      thisQTitle.textContent = title;
+      thisQBody.innerHTML = html;
+    }
+
+    /* ---------------- worked example (same type only) ---------------- */
+    function updateWorkedExample(){
+      const C = cur.currency;
+      let html='', title='';
+
+      if(cur.type==='invest_final'){
+        const start = stepRnd(200, 2500, 50);
+        const r = choice([2.5,3,4,5,6,7]);
+        const n = rnd(1,9);
+        const m = 1 + r/100;
+        const end = to2(start * Math.pow(m,n));
+        title = 'Worked example — compound interest (final amount)';
+        html = `
+          <p>You invest <b>${C}${start.toFixed(2)}</b> at <b>${r}%</b> compound interest per year for <b>${n}</b> years (compounded annually). Find the final amount.</p>
+          ${machineHTML({direction:'forward', input:`${C}${start.toFixed(2)}`, proc:`× (${m.toFixed(4)}) ^ ${n}`, output:`${C}${f2(end)}`})}
+          <p>Multiplier: <code>m = 1 + ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Final: <code>${C}${start.toFixed(2)} × ${m.toFixed(4)}^${n} = ${C}${f2(end)}</code></p>
+        `;
+      }
+      else if(cur.type==='invest_reverse'){
+        const start = stepRnd(300, 3000, 50);
+        const r = choice([2.5,3,4,5,6,7]);
+        const n = rnd(1,9);
+        const m = 1 + r/100;
+        const end = to2(start * Math.pow(m,n));
+        title = 'Worked example — compound interest (starting amount)';
+        html = `
+          <p>An investment is worth <b>${C}${end.toFixed(2)}</b> after <b>${n}</b> years at <b>${r}%</b> compound interest (annual). Find the initial amount.</p>
+          ${machineHTML({direction:'backward', input:`${C}${start.toFixed(2)}`, proc:`÷ (${m.toFixed(4)}) ^ ${n}`, output:`${C}${end.toFixed(2)}`})}
+          <p>Multiplier: <code>m = 1 + ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Start: <code>${C}${end.toFixed(2)} ÷ ${m.toFixed(4)}^${n} = ${C}${start.toFixed(2)}</code></p>
+        `;
+      }
+      else if(cur.type==='time_growth'){
+        const r = choice([2,3,4,5,6,7,8,9,10]);
+        const m = 1 + r/100;
+        const start = stepRnd(500, 4000, 50);
+        // pick an end that gives a nice-ish time within 1..9 years
+        const yearsTrue = rnd(2,9);
+        const end = to2(start * Math.pow(m, yearsTrue));
+        const nExact = Math.log(end/start)/Math.log(m);
+        const nRound = Math.round(nExact);
+        title = 'Worked example — solve for years (growth)';
+        html = `
+          <p>A savings account grows at <b>${r}%</b> compound interest per year. How many years to grow from <b>${C}${start.toFixed(2)}</b> to <b>${C}${end.toFixed(2)}</b>? (nearest whole year)</p>
+          <p>Multiplier: <code>m = 1 + ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Use logs: <code>n = log(end/start) ÷ log(m)</code></p>
+          <p><code>n = log(${end.toFixed(2)}/${start.toFixed(2)}) ÷ log(${m.toFixed(4)}) ≈ ${nExact.toFixed(3)}</code></p>
+          <p>Nearest whole year: <b>${nRound}</b></p>
+        `;
+      }
+      else if(cur.type==='depr_value'){
+        const start = stepRnd(4000, 18000, 500);
+        const r = choice([10,12.5,15,18,20,25]);
+        const n = rnd(1,9);
+        const m = 1 - r/100;
+        const end = to2(start * Math.pow(m,n));
+        title = 'Worked example — depreciation';
+        html = `
+          <p>A car is worth <b>${C}${start.toFixed(2)}</b>. It depreciates by <b>${r}%</b> each year for <b>${n}</b> years. Find its value.</p>
+          ${machineHTML({direction:'forward', input:`${C}${start.toFixed(2)}`, proc:`× (${m.toFixed(4)}) ^ ${n}`, output:`${C}${f2(end)}`})}
+          <p>Multiplier: <code>m = 1 − ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Value: <code>${C}${start.toFixed(2)} × ${m.toFixed(4)}^${n} = ${C}${f2(end)}</code></p>
+        `;
+      }
+      else if(cur.type==='radiation_mass'){
+        const start = stepRnd(80, 400, 10);
+        const r = choice([3,4,5,6,8,10,12]);
+        const n = rnd(1,9);
+        const m = 1 - r/100;
+        const end = to2(start * Math.pow(m,n));
+        title = 'Worked example — radiation decay';
+        html = `
+          <p>A radioactive sample has mass <b>${start.toFixed(2)} g</b>. It loses <b>${r}%</b> of its mass each year for <b>${n}</b> years. Find the mass remaining.</p>
+          ${machineHTML({direction:'forward', input:`${start.toFixed(2)} g`, proc:`× (${m.toFixed(4)}) ^ ${n}`, output:`${f2(end)} g`})}
+          <p>Multiplier: <code>m = 1 − ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Mass: <code>${start.toFixed(2)} × ${m.toFixed(4)}^${n} = ${f2(end)} g</code></p>
+        `;
+      }
+      else if(cur.type==='time_decay'){
+        const r = choice([4,5,6,8,10,12]);
+        const m = 1 - r/100;
+        const start = stepRnd(200, 800, 10);
+        const yearsTrue = rnd(2,12);
+        const end = to2(start * Math.pow(m, yearsTrue));
+        const nExact = Math.log(end/start)/Math.log(m);
+        const nRound = Math.round(nExact);
+        title = 'Worked example — solve for years (decay)';
+        html = `
+          <p>A substance decreases by <b>${r}%</b> each year. How many years to go from <b>${start.toFixed(2)}</b> to <b>${end.toFixed(2)}</b>? (nearest whole year)</p>
+          <p>Multiplier: <code>m = 1 − ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Use logs: <code>n = log(end/start) ÷ log(m)</code></p>
+          <p><code>n = log(${end.toFixed(2)}/${start.toFixed(2)}) ÷ log(${m.toFixed(4)}) ≈ ${nExact.toFixed(3)}</code></p>
+          <p>Nearest whole year: <b>${nRound}</b></p>
+        `;
+      }
+      else if(cur.type==='bacteria'){
+        const scen = choice(growthScenarios);
+        const start = stepRnd(500, 6000, 50);
+        const r = choice([15,20,25,30,35,40]);
+        const n = rnd(2,10);
+        const m = 1 + r/100;
+        const end = Math.round(start * Math.pow(m,n));
+        title = 'Worked example — exponential growth (counts)';
+        html = `
+          <p>A ${scen.label} increases by <b>${r}%</b> per hour. It starts at <b>${f0(start)}</b> ${scen.unit}. How many after <b>${n}</b> hours? (nearest whole number)</p>
+          <p>Multiplier: <code>m = 1 + ${r}/100 = ${m.toFixed(4)}</code></p>
+          <p>Final count: <code>${f0(start)} × ${m.toFixed(4)}^${n} ≈ ${f0(end)}</code></p>
+        `;
+      }
+      else{
+        title = 'Worked example';
+        html = `<p>Start a question to see a worked example here.</p>`;
+      }
+
+      exTitle.textContent = title;
+      exBody.innerHTML = html;
+    }
+
+    /* ---------------- question generator ---------------- */
+    function newQuestion(){
+      fbEl.textContent=''; fbEl.className='';
+      checkBtn.disabled=false; nextBtn.style.display='none';
+      ansEl.value=''; ansEl.focus();
+      cardEl.classList.remove('shake');
+
+      const C = cur.currency;
+
+      // Types included:
+      // - invest_final (up to 9 years)
+      // - invest_reverse (up to 9 years)
+      // - time_growth (nearest whole year)
+      // - depr_value (depreciation up to 9 years)
+      // - radiation_mass (decay up to 9 years)
+      // - time_decay (nearest whole year)
+      // - bacteria (growth in hours)
+      const type = choice(['invest_final','invest_reverse','time_growth','depr_value','radiation_mass','time_decay','bacteria']);
+
+      let text='', ansType='amount', unit='', ans=null;
+      let r=null, m=null, n=null, start=null, end=null;
+
+      if(type==='invest_final'){
+        const ctx = choice(investContexts);
+        r = choice(investRates);
+        n = rnd(1,9);
+        start = stepRnd(200, 8000, 50);
+        m = 1 + r/100;
+        end = to2(start * Math.pow(m,n));
+        ansType = 'money';
+        ans = end;
+        text = `You put <b>${C}${start.toFixed(2)}</b> into <b>${ctx}</b> at <b>${r}%</b> compound interest per year (compounded annually).<br>How much will it be worth after <b>${n}</b> years? Give your answer to <b>2 d.p.</b>.`;
+      }
+      else if(type==='invest_reverse'){
+        const ctx = choice(investContexts);
+        r = choice(investRates);
+        n = rnd(1,9);
+        start = stepRnd(200, 8000, 50);
+        m = 1 + r/100;
+        end = to2(start * Math.pow(m,n));
+        ansType = 'money';
+        ans = to2(start);
+        text = `An amount of money is invested in <b>${ctx}</b> at <b>${r}%</b> compound interest per year (compounded annually).<br>After <b>${n}</b> years it is worth <b>${C}${end.toFixed(2)}</b>.<br>What was the original amount invested? Give your answer to <b>2 d.p.</b>.`;
+      }
+      else if(type==='time_growth'){
+        // keep within about 1..9 years (investment context)
+        const ctx = choice(investContexts);
+        r = choice(investRates.filter(x=>x>=2));
+        m = 1 + r/100;
+        start = stepRnd(300, 6000, 50);
+
+        // choose an end that gives a time between 2 and 9 years
+        const yearsTrue = rnd(2,9);
+        end = to2(start * Math.pow(m, yearsTrue));
+
+        // compute from displayed values and round to nearest whole year
+        const nExact = Math.log(end/start) / Math.log(m);
+        ansType = 'years';
+        ans = Math.round(nExact);
+
+        text = `Money in <b>${ctx}</b> grows at <b>${r}%</b> compound interest per year (compounded annually).<br>How many years will it take to grow from <b>${C}${start.toFixed(2)}</b> to <b>${C}${end.toFixed(2)}</b>?<br>Give your answer to the <b>nearest whole year</b>.`;
+      }
+      else if(type==='depr_value'){
+        // depreciation up to 9 years
+        const asset = choice(depreciatingAssets);
+        r = choice(decayRates);
+        n = rnd(1,9);
+        start = stepRnd(200, 20000, 100);
+        m = 1 - r/100;
+        end = to2(start * Math.pow(m,n));
+        ansType = 'money';
+        ans = end;
+        text = `The value of ${asset} is <b>${C}${start.toFixed(2)}</b>.<br>It depreciates by <b>${r}%</b> each year for <b>${n}</b> years.<br>What is its value after <b>${n}</b> years? Give your answer to <b>2 d.p.</b>.`;
+      }
+      else if(type==='radiation_mass'){
+        r = choice(radRates);
+        n = rnd(1,9);
+        start = stepRnd(50, 500, 10);
+        m = 1 - r/100;
+        end = to2(start * Math.pow(m,n));
+        ansType = 'amount';
+        unit = 'g';
+        ans = end;
+        text = `A radioactive sample has a mass of <b>${start.toFixed(2)} g</b>.<br>Each year it loses <b>${r}%</b> of its mass. Calculate the mass after <b>${n}</b> years.<br>Give your answer to <b>2 d.p.</b>.`;
+      }
+      else if(type==='time_decay'){
+        // time to reach a target with decay (nearest whole year)
+        const ctx = choice(timeDecayContexts);
+        const pool = (ctx.ratePool==='rad') ? radRates : (ctx.ratePool==='depr') ? decayRates : medRates;
+        r = choice(pool);
+        m = 1 - r/100;
+
+        start = stepRnd(ctx.startMin, ctx.startMax, ctx.step);
+        const yearsTrue = rnd(2,12);
+        end = to2(start * Math.pow(m, yearsTrue));
+
+        // compute from displayed values and round to nearest whole year
+        const nExact = Math.log(end/start) / Math.log(m);
+        ansType = 'years';
+        ans = Math.round(nExact);
+
+        const startTxt = (ctx.unit==='money') ? `${C}${start.toFixed(2)}` : `${start.toFixed(2)} ${ctx.unit}`;
+        const endTxt   = (ctx.unit==='money') ? `${C}${end.toFixed(2)}`   : `${end.toFixed(2)} ${ctx.unit}`;
+
+        text = `${ctx.label} decreases by <b>${r}%</b> each year.<br>How many years does it take to go from <b>${startTxt}</b> to <b>${endTxt}</b>?<br>Give your answer to the <b>nearest whole year</b>.`;
+      }
+      else if(type==='bacteria'){
+        const scen = choice(growthScenarios);
+        r = choice(bactRates);
+        n = rnd(2,10);
+        start = stepRnd(400, 8000, 50);
+        m = 1 + r/100;
+        end = start * Math.pow(m,n);
+        ansType = 'count';
+        unit = scen.unit;
+        ans = Math.round(end);
+        text = `A ${scen.label} increases by <b>${r}%</b> per hour.<br>It starts with <b>${f0(start)}</b> ${scen.unit}. How many ${scen.unit} will there be after <b>${n}</b> hours?<br>Give your answer to the <b>nearest whole number</b>.`;
+      }
+
+      // store
+      cur.type = type;
+      cur.rate = r;
+      cur.mult = m;
+      cur.n = n;
+      cur.start = start;
+      cur.end = end;
+      cur.ansType = ansType;
+      cur.unit = unit;
+      cur.ans = ans;
+      cur.qStart = performance.now();
+      cur.text = text;
+
+      // render
+      qEl.innerHTML = text;
+      setAnswerUI();
+      updateThisQHint();
+      updateWorkedExample();
+    }
+
+    /* ---------------- check answer ---------------- */
+    function doShake(){
+      cardEl.classList.remove('shake');
+      void cardEl.offsetWidth; // restart animation
+      cardEl.classList.add('shake');
+      ansEl.style.borderColor = 'var(--danger)';
+      ansEl.style.background = '#ffecec';
+      setTimeout(()=>{ ansEl.style.borderColor = '#c6cfd9'; ansEl.style.background = '#fff'; }, 300);
+    }
+
+    checkBtn.onclick = () => {
+      const raw = String(ansEl.value).trim();
+      const v = Number(raw);
+      if(!raw || Number.isNaN(v)){
+        fbEl.textContent = "Please enter a number. If you're not sure, ask your teacher for help.";
+        fbEl.className='no';
+        doShake();
+        return;
+      }
+
+      let ok = false;
+      if(cur.ansType==='years' || cur.ansType==='count'){
+        ok = Math.round(v) === Math.round(cur.ans);
+      } else {
+        ok = approxEq(to2(v), to2(cur.ans), 0.01);
+      }
+
+      if(ok){
+        // Quick answer toast (under 4s)
+        const elapsed = performance.now() - (cur.qStart || performance.now());
+        if(elapsed < 4000){ flashToast("Wow, that was quick!! ⚡️"); }
+
+        fbEl.innerHTML = `Correct! ✅ Answer = <b>${fmtAnswer()}</b>.`;
+        fbEl.className='yes';
+        streak += 1;
+        score += 1;
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+        checkBtn.disabled = true;
+        nextBtn.style.display='inline-block';
+        confettiBurst(150);
+
+        if(mode==='target' && target){
+          const pct = clamp(Math.round((score/target)*100),0,100);
+          barEl.style.width = pct + '%';
+          if(score >= target){
+            setTimeout(()=>{ alert('🎉 Target reached! Great work.'); location.reload(); }, 250);
+          }
+        }
+      }else{
+        const exp = (cur.ansType==='years') ? 'a number of years (nearest whole year)' :
+                    (cur.ansType==='count') ? 'a whole number (nearest whole number)' :
+                    'a number to 2 d.p.';
+        fbEl.textContent = `Not quite — try again. Enter ${exp}. If you're not sure, ask your teacher for help.`;
+        fbEl.className='no';
+        doShake();
+        streak = 0;
+        streakEl.textContent = streak;
+      }
+    };
+
+    nextBtn.onclick = newQuestion;
+
+    // Enter key
+    ansEl?.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){
+        if(nextBtn.style.display==='inline-block'){ newQuestion(); }
+        else{ checkBtn.click(); }
+      }
+    });
+
+    /* ---------------- timer ---------------- */
+    function startTimer(){
+      clearInterval(timerID);
+      timerEl.textContent = fmt(timeLeft);
+      if(timeLeft===null) return;
+      timerID = setInterval(()=>{
+        timeLeft--;
+        timerEl.textContent = fmt(timeLeft);
+        if(timeLeft<0){
+          clearInterval(timerID);
+          alert("⏰ Time's up!");
+          location.reload();
+        }
+      },1000);
+    }
+
+    /* ---------------- drawer ---------------- */
+    function openDrawer(){ drawer.classList.add('open'); shade.classList.add('open'); }
+    function closeDrawer(){ drawer.classList.remove('open'); shade.classList.remove('open'); }
+    shade.onclick = closeDrawer; closeDrawerBtn.onclick = closeDrawer; hintBtn.onclick = openDrawer;
+    tabBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        tabBtns.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const which = btn.dataset.tab;
+        if(which==='thisQ'){ tabThisQ.style.display='block'; tabExample.style.display='none'; }
+        else { tabThisQ.style.display='none'; tabExample.style.display='block'; }
+      });
+    });
+
+    /* ---------------- menu handlers ---------------- */
+    function toggleGroups(){
+      const m = document.querySelector('input[name="mode"]:checked').value;
+      document.getElementById('timerGroup').style.display = m==='timer' ? 'block' : 'none';
+      document.getElementById('scoreGroup').style.display = m==='target' ? 'block' : 'none';
+    }
+    document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', toggleGroups));
+
+    document.getElementById('startBtn').onclick = () => {
+      player = document.getElementById('nameInput').value.trim() || 'Player';
+      playerEl.textContent = player;
+      mode = document.querySelector('input[name="mode"]:checked').value;
+
+      if(mode==='timer'){
+        const sel = document.querySelector('input[name="timer"]:checked').value;
+        timeLeft = sel==='none' ? null : parseInt(sel,10);
+        goalEl.textContent = '—';
+        progress.style.display='none';
+        startTimer();
+      }else{
+        target = parseInt(document.getElementById('scoreInput').value,10);
+        if(!Number.isInteger(target) || target<1){
+          alert('Please enter a positive whole number for the target score.');
+          return;
+        }
+        goalEl.textContent = target;
+        progress.style.display='block';
+        barEl.style.width = '0%';
+        timeLeft = null; timerEl.textContent = '∞';
+      }
+
+      document.getElementById('overlay').style.display='none';
+      newQuestion();
+    };
+
+    window.onload = toggleGroups;
+  </script>
+</body>
+</html>
